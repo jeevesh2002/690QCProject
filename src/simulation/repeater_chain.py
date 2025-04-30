@@ -1,8 +1,8 @@
 """Implements an end‑to‑end entanglement generation run"""
 import random
 import simpy
-from protocols import generation, purification, swapping, filtering
-from configs import physics
+from src.protocols import generation, purification, swapping, filtering
+from src.configs import physics
 
 def generate_end_to_end(env, path_links, strategy, protocol, rounds, filter_threshold):
     """Return (success_time, final_fidelity, raw_pairs_used)."
