@@ -1,15 +1,14 @@
-"""Heralded single‑click generation helper."""
-
 import random
-from network.pair import EntangledPair
 from configs import physics
+import simpy
 
-def try_generate(env, link):
-    """Attempt single‑click generation on *link*; yields EntangledPair or None."""
-    success, latency = link.attempt_single_click()
-    env.timeout(latency)          # advance simulation clock
-    if not success:
-        return None
-    # ideal Bell‑pair with baseline fidelity F0 decayed by propagation time
-    fidelity = physics.F0_LINK    # losses already reflected in success_prob
-    return EntangledPair(link.a.name, link.b.name, fidelity, env.now)
+class Pair:
+    def __init__(self, fidelity: float):
+        self.fidelity = fidelity
+
+def try_generate(env: simpy.Environment, link) -> Pair | None:
+    """Attempt heralded single‑click generation on *link* (Bernoulli)."""
+    success = random.random() < link.success_prob * physics.DETECTION_EFFICIENCY
+    latency = (link.length_km * 1000) / physics.SPEED_OF_LIGHT_FIBER  # one‑way
+    yield env.timeout(2 * latency)  # round‑trip
+    return Pair(physics.F0_LINK) if success else None

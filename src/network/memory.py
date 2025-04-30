@@ -1,31 +1,22 @@
+"""Simple exponential‑decay quantum memory."""
 import math
+
 from configs import physics
 
-class MemoryRegister:
-    """A single‑qubit memory with exponential decoherence F(t)=F0·e^{‑t/T_coh}.
+class QuantumMemory:
+    """Stores a single qubit with exponentially decaying Werner fidelity."""
 
-    Parameters
-    ----------
-    env : simpy.Environment
-        Global simulation clock.
-    F0  : float
-        Initial fidelity at creation.
-    T_coh : float
-        Coherence time constant in seconds.
-    """
-    def __init__(self, env, F0=physics.F0_LINK, T_coh=physics.DEFAULT_COHERENCE_TIME_S):
+    def __init__(self, env):
         self.env = env
-        self.birth = env.now
-        self.F0 = F0
-        self.T_coh = T_coh
+        self.birth = -math.inf
+        self.F0 = physics.F0_LINK  # overwritten on reset
 
-    def fidelity(self):
-        """Return current fidelity after free evolution."""
-        age = self.env.now - self.birth
-        return self.F0 * math.exp(-age / self.T_coh)
-
-    def reset(self, F_new=None):
-        """Overwrite the stored qubit (e.g., after swapping) and reset timer."""
+    def reset(self, F_new: float | None = None):
+        """Store a *fresh* qubit of fidelity *F_new* (defaults to physics.F0_LINK)."""
         self.birth = self.env.now
         if F_new is not None:
             self.F0 = F_new
+
+    def fidelity(self) -> float:
+        dt = self.env.now - self.birth
+        return self.F0 * math.exp(-dt / physics.DEFAULT_COHERENCE_TIME_S)

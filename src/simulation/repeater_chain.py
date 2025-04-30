@@ -1,60 +1,92 @@
-"""Implements an end‑to‑end entanglement generation"""
+"""Generate an end‑to‑end Bell pair over a chain using various strategies.
+"""
+from __future__ import annotations
 import random
+from typing import List
 import simpy
-from protocols import generation, purification, swapping, filtering
-from configs import physics
+from protocols import swapping, filtering, generation
+from protocols.purification import get_scheme
 
-def generate_end_to_end(env, path_links, strategy, protocol, rounds, filter_threshold):
-    """Return (success_time, final_fidelity, raw_pairs_used)."
 
-    The coroutine keeps attempting link‑level generation in parallel
-    until an end‑to‑end Bell pair is delivered.
+def _purify_many(F: float, rounds: int, purify_fn):
+    """Run <=rounds purification rounds; return (F', success?)."""
+    for _ in range(rounds):
+        F_new, p = purify_fn(F)
+        if random.random() > p:           # purification failed
+            return F, False
+        F = F_new
+    return F, True
+
+
+def generate_end_to_end(
+    env: simpy.Environment,
+    path_links: List,
+    *,
+    rounds: int = 1,
+    filter_threshold: float = 0.9,
+    strategy: str = "purify_then_swap",
+    protocol: str = "dejmps",
+    max_trials: int = 50_000,          # stop-gap
+    echo_every: int = 100,            # progress cadence
+):
     """
+    SimPy *process* that tries until an end-to-end Bell pair is produced.
+    Raises RuntimeError if `max_trials` is exceeded.
+    """
+    purify = get_scheme(protocol)
     raw_pairs = 0
-    # Containers for current link pairs (None until successful)
-    link_pairs = {link: None for link in path_links}
+    trials = 0
 
     while True:
-        # 1) Attempt generation in *parallel* on all unfinished links
-        for link in path_links:
-            if link_pairs[link] is None:
-                pair = generation.try_generate(env, link)
-                raw_pairs += 1
-                if pair:
-                    link_pairs[link] = pair
+        trials += 1
+        if trials % echo_every == 0:
+            print(f"[{env.now:>8.3f} s]  trials={trials}  raw={raw_pairs}")
 
-        # 2) If every hop has at least one pair, optionally purify
-        if all(link_pairs.values()):
-            for link in path_links:
-                pair = link_pairs[link]
-                F = pair.fidelity
-                # multiple purification rounds possible
-                for _ in range(rounds):
-                    F_new, p_succ = (purification.dejmps if protocol=='dejmps'
-                                     else purification.bbpssw)(F)
-                    # acceptance test
-                    if random.random() < p_succ:
-                        F = F_new
-                    else:
-                        # purification failed; discard pair and start over for this link
-                        link_pairs[link] = None
-                        break
-                else:
-                    # optional filtering
-                    if not filtering.apply_filter(F, filter_threshold):
-                        link_pairs[link] = None
-                        continue
-                    link_pairs[link].fidelity = F   # update fidelity
+        if trials > max_trials:
+            raise RuntimeError(
+                f"Exceeded {max_trials} trials without success "
+                f"(path length={len(path_links)}, link_len={path_links[0].length_km} km)."
+            )
 
-            if not all(link_pairs.values()):
-                continue  # some purification/filter failed; keep loop
+        # 1 ── attempt all hops in parallel
+        events = {l: env.process(generation.try_generate(env, l)) for l in path_links}
+        failure = False
+        hop_F = {}
 
-            # 3) Perform swapping along the path
-            fidelities = [link_pairs[link].fidelity for link in path_links]
-            F_end = fidelities[0]
-            for F_next in fidelities[1:]:
-                F_end = swapping.swap(F_end, F_next)
-            return env.now, F_end, raw_pairs
+        for link, ev in events.items():
+            pair = yield ev
+            if pair is None:
+                failure = True
+            else:
+                hop_F[link] = pair.fidelity
 
-        # Advance time by a small step to avoid busy‑wait
-        yield env.timeout(1e-6)
+        if failure:
+            continue  # at least one link failed
+
+        raw_pairs += len(path_links)
+
+        # 2 ── optional hop-wise purification
+        if strategy == "purify_then_swap":
+            for link, F in hop_F.items():
+                F, ok = _purify_many(F, rounds, purify)
+                if not ok:
+                    failure = True
+                    break
+                hop_F[link] = F
+            if failure:
+                continue
+
+        # 3 ── entanglement swapping
+        fidelities = list(hop_F.values())
+        F_end = fidelities[0]
+        for F_next in fidelities[1:]:
+            F_end = swapping.swap(F_end, F_next)
+
+        # 4 ── if swap-then-purify: purify now
+        if strategy == "swap_then_purify":
+            F_end, ok = _purify_many(F_end, rounds, purify)
+            if not ok or not filtering.apply_filter(F_end, filter_threshold):
+                continue
+
+        # ── success!
+        return env.now, F_end, raw_pairs
