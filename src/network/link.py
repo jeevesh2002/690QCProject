@@ -1,5 +1,5 @@
 import math, random
-from src.configs import physics
+from configs import physics
 
 class FibreLink:
     """Bidirectional optical fibre characterised by length and loss.
@@ -23,7 +23,7 @@ class FibreLink:
         self.latency_s = (length_km * 1e3) / physics.SPEED_OF_LIGHT_FIBER
 
         # allocate one memory per end
-        from src.network.memory import MemoryRegister
+        from network.memory import MemoryRegister
         self.a.add_memory(self.b, MemoryRegister(env))
         self.b.add_memory(self.a, MemoryRegister(env))
 

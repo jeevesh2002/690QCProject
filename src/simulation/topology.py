@@ -1,6 +1,6 @@
 """Helpers to build network graphs."""
-from src.network.node import Node
-from src.network.link import FibreLink
+from network.node import Node
+from network.link import FibreLink
 
 def build(env, topo, n_nodes, link_length_km):
     """Return (nodes: list[Node], links: list[FibreLink])"""

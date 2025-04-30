@@ -1,8 +1,8 @@
 """Heralded single‑click generation helper."""
 
 import random
-from src.network.pair import EntangledPair
-from src.configs import physics
+from network.pair import EntangledPair
+from configs import physics
 
 def try_generate(env, link):
     """Attempt single‑click generation on *link*; yields EntangledPair or None."""

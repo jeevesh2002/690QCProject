@@ -1,5 +1,5 @@
 import math
-from src.configs import physics
+from configs import physics
 
 class MemoryRegister:
     """A single‑qubit memory with exponential decoherence F(t)=F0·e^{‑t/T_coh}.
