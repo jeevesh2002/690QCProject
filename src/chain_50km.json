@@ -1,0 +1,18 @@
+{
+  "topology": "chain",
+  "nodes": 4,
+  "link_length": 50.0,
+  "strategy": "purify_then_swap",
+  "protocol": "dejmps",
+  "rounds": 2,
+  "filter_threshold": 0.9,
+  "coherence_time": 1.0,
+  "att_len": 20000.0,
+  "runs": 500,
+  "seed": 42,
+  "output": "chain_50km.json",
+  "latency_mean": 0.0020350000000000004,
+  "fidelity_mean": 0.7951031813381947,
+  "raw_mean": 8.838,
+  "timestamp": 1746310667.5665185
+}
