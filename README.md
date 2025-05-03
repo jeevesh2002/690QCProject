@@ -9,7 +9,7 @@
 
 ## **Network Architecture and Strategies**
 
-- We focus on second-generation quantum repeater networks because they support entanglement purification and memory-aware coordination without the complexity of full quantum error correction.
+- We focus on first-generation quantum repeater networks because they support entanglement purification and memory-aware coordination without the complexity of full quantum error correction.
 - Three network topologies are analyzed: 
   - A linear chain (e.g., A-B-C-D)
   - A triangular ring (A-B-C-A)
