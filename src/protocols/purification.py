@@ -1,5 +1,5 @@
-"""Purification maps (DEJMPS, BBPSSW) and dispatcher."""
-from typing import Callable, Tuple
+"""Purification maps (DEJMPS, BBPSSW)."""
+from typing import Tuple
 
 def dejmps(F: float) -> Tuple[float, float]:
     """Return (F', P_success) after one round of DEJMPS on Werner state."""
@@ -16,10 +16,10 @@ def bbpssw(F: float) -> Tuple[float, float]:
     return dejmps(F)
 
 # helper dispatcher
-def get_scheme(name: str) -> Callable[[float], Tuple[float, float]]:
+def get_scheme(name: str):
     name = name.lower()
     if name in {'dejmps', 'd'}:
         return dejmps
     if name in {'bbpssw', 'bbp'}:
         return bbpssw
-    raise ValueError(f"Unknown purification scheme '{name}'")
+    raise ValueError(name)

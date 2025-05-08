@@ -1,22 +1,21 @@
-"""Simple exponential‑decay quantum memory."""
+"""Quantum memory with exponential fidelity decay."""
 import math
-
 from configs import physics
 
 class QuantumMemory:
-    """Stores a single qubit with exponentially decaying Werner fidelity."""
-
-    def __init__(self, env):
+    def __init__(self, env, fidelity: float | None = None):
         self.env = env
         self.birth = -math.inf
-        self.F0 = physics.F0_LINK  # overwritten on reset
+        self.F0 = fidelity or physics.F0_LINK
 
-    def reset(self, F_new: float | None = None):
-        """Store a *fresh* qubit of fidelity *F_new* (defaults to physics.F0_LINK)."""
+    def reset(self, fidelity: float):
         self.birth = self.env.now
-        if F_new is not None:
-            self.F0 = F_new
+        self.F0 = fidelity
 
     def fidelity(self) -> float:
         dt = self.env.now - self.birth
         return self.F0 * math.exp(-dt / physics.DEFAULT_COHERENCE_TIME_S)
+
+    # pretty
+    def __repr__(self):
+        return f"<QMem F0={self.F0:.3f} born={self.birth:.3f}>"

@@ -1,5 +1,4 @@
 """Mutable physical constants for sweepable simulations."""
-
 from dataclasses import dataclass
 
 @dataclass
@@ -7,7 +6,7 @@ class PhysicsConfig:
     SPEED_OF_LIGHT_FIBER: float = 2e8          # m/s  (≈5 µs per km RTT)
     ATTENUATION_LENGTH_KM: float = 22          # Beer–Lambert attenuation length
     F0_LINK: float = 0.85                      # Baseline fidelity for a fresh link
-    DEFAULT_COHERENCE_TIME_S: float = 1e3      # Quantum-memory coherence time
+    DEFAULT_COHERENCE_TIME_S: float = 1.0      # Quantum-memory coherence time
     DETECTION_EFFICIENCY: float = 0.9          # Detector efficiency for single‑click
 
 # Singleton instance that simulation modules may mutate at runtime

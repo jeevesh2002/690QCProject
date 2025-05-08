@@ -1,4 +1,4 @@
-"""Fibre link between two nodes."""
+"""Bidirectional fibre link with one communication qubit per side."""
 import math
 from configs import physics
 
@@ -16,3 +16,6 @@ class FibreLink:
     # convenience for protocols ----------------
     def other(self, node):
         return self.b if node is self.a else self.a
+
+    def __repr__(self):
+        return f"Link({self.a.name}-{self.b.name},{self.length_km}km)"
