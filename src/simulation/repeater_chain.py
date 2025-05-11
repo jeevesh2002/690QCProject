@@ -44,7 +44,7 @@ def generate_end_to_end(
     filter_threshold: float = 0.9,
     strategy: str = "purify_then_swap",
     protocol: str = "dejmps",
-    max_trials: int = 10000,
+    max_trials: int = 50000,
     echo_every: int = 100,
 ):
     purify_fn = get_scheme(protocol)

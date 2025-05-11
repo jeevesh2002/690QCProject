@@ -176,3 +176,5 @@ src/src.zip
 src/threshold.py
 .gitignore
 src/text.txt
+src/code.py
+src/code.txt
