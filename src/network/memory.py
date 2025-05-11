@@ -3,6 +3,7 @@ import math
 from configs import physics
 
 class QuantumMemory:
+    """Stores one qubit entangled with a neighbour and tracks its fidelity."""
     def __init__(self, env, fidelity: float | None = None):
         self.env = env
         self.birth = -math.inf
@@ -18,4 +19,5 @@ class QuantumMemory:
 
     # pretty
     def __repr__(self):
-        return f"<QMem F0={self.F0:.3f} born={self.birth:.3f}>"
+        age = self.env.now - self.birth
+        return f"<QMem F={self.fidelity():.3f} age={age*1e3:.1f}ms>"

@@ -172,3 +172,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+src/src.zip
+src/threshold.py
+.gitignore
+src/text.txt

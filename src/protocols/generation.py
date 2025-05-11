@@ -21,7 +21,7 @@ def try_generate(env: simpy.Environment, link) -> Pair | None:
 
     success = random.random() < link.success_prob * physics.DETECTION_EFFICIENCY
     latency = (link.length_km * 1000) / physics.SPEED_OF_LIGHT_FIBER
-    yield env.timeout(2 * latency)
+    yield env.timeout(2 * latency)  # round trip time
 
     # free communication qubit
     link.a.set_comm_busy(link.b, False)
