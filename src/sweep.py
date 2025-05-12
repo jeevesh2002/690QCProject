@@ -23,7 +23,7 @@ BASE = dict(nodes=4, protocol="dejmps", coherence_time=1.0, att_len=22.0, seed=4
 TOPO = ["chain", "ring", "star"]
 STRAT = ["purify_then_swap", "swap_then_purify"]
 LKM = [10, 20, 30, 50]
-ROUNDS = range(3, 16, 2)
+ROUNDS = range(3, 15, 3)
 
 def sim(cfg, runs):
     try:
