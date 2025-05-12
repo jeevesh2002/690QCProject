@@ -2,11 +2,6 @@
 #!/usr/bin/env python3
 """adaptive_threshold.py – determine maximal viable filter threshold.
 
-Steps:
-  • Start at 0.70, add 0.05 until the run trips 'Exceeded max trials'.
-  • Step back, then lower in 0.002 decrements until run succeeds again.
-  • Save that threshold and performance metrics.
-
 Writes CSV rows for each (topology, strategy, link length, rounds).
 """
 
@@ -35,22 +30,22 @@ def sim(cfg, runs):
 
 def find_threshold(base_cfg, runs):
     thr = 0.70
-    step = 0.0002
+    step = 0.002
     # upward sweep
     while True:
         result = sim({**base_cfg, "filter_threshold": thr}, runs)
         if result["status"] != "ok":
-            thr = round(thr - step, 5)   # last working
+            thr = round(thr - step, 3)   # last working
             break
         thr += step
-        thr = round(thr, 5)
+        thr = round(thr, 3)
     # fine‑grained descent
     thr_fine = thr
     while True:
-        test = sim({**base_cfg, "filter_threshold": thr_fine + 0.0002}, runs)
+        test = sim({**base_cfg, "filter_threshold": thr_fine + 0.002}, runs)
         if test["status"] == "ok":
-            thr_fine += 0.00001
-            thr_fine = round(thr_fine, 5)
+            thr_fine += 0.0001
+            thr_fine = round(thr_fine, 4)
         else:
             break
     final = sim({**base_cfg, "filter_threshold": thr_fine}, runs)
