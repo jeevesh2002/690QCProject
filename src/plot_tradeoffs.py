@@ -10,8 +10,8 @@ and generates three sets of publication‑ready PDF figures:
      curves coloured by link length)
 
 2. Performance lines:
-     • fidelity_mean vs rounds
-     • rate_pair_mean vs rounds
+      fidelity_mean vs rounds
+      rate_pair_mean vs rounds
    (again per topology × strategy, coloured by link length)
 
 3. Pareto scatter:
