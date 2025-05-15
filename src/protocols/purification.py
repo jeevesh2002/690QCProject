@@ -17,6 +17,19 @@ def bbpssw(F: float) -> Tuple[float, float]:
 
 # helper dispatcher
 def get_scheme(name: str):
+    """Returns the purification scheme function corresponding to the given name.
+
+    This function selects and returns the appropriate purification function based on the provided scheme name.
+
+    Args:
+        name: The name of the purification scheme.
+
+    Returns:
+        The function implementing the specified purification scheme.
+
+    Raises:
+        ValueError: If the provided name does not correspond to a known scheme.
+    """
     name = name.lower()
     if name in {'dejmps', 'd'}:
         return dejmps
