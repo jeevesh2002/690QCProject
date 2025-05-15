@@ -1,10 +1,15 @@
-"""Entanglement‑swapping fidelity transformation for Werner states."""
-def swap(F1, F2):
-    """Return fidelity of resulting pair after swapping two Werner states.
+"""Entanglement swapping for Werner fidelities."""
+def swap(F1: float, F2: float) -> float:
+    """Calculates the swapped fidelity for two Werner states.
+    
+    This function computes the resulting fidelity after entanglement swapping is performed on two Werner states with given fidelities.
 
-    Formula: Let x=(4F−1)/3.  After a Bell‑state measurement the new
-    Werner parameter is x' = x1 * x2.  Therefore
-        F' = (1 + 3 x') / 4 = (1 + (4F1-1)(4F2-1)/3) / 4
+    Args:
+        F1: Fidelity of the first Werner state.
+        F2: Fidelity of the second Werner state.
+
+    Returns:
+        The fidelity of the swapped Werner state as a float.
     """
     num = (4*F1 - 1) * (4*F2 - 1)
     return (1 + num/3) / 4
