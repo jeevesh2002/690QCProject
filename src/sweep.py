@@ -21,6 +21,17 @@ LKM = [10, 20, 30, 50]
 ROUNDS = range(3, 15, 3)
 
 def sim(cfg, runs):
+    """Runs a simulation with the given configuration and number of runs, returning the result status.
+
+    This function executes the simulation and returns a dictionary with the results and status, handling errors gracefully.
+
+    Args:
+        cfg: The simulation configuration dictionary.
+        runs: The number of simulation runs to perform.
+
+    Returns:
+        A dictionary containing the simulation results and a status key.
+    """
     try:
         s = runner.run({**cfg, "runs": runs}, collect=True)
         s["status"] = "ok"
@@ -29,6 +40,17 @@ def sim(cfg, runs):
     return s
 
 def find_threshold(base_cfg, runs):
+    """Finds the maximal viable filter threshold for a given configuration and number of runs.
+
+    This function sweeps upward to find the highest threshold that works, then refines the result with a fine-grained descent.
+
+    Args:
+        base_cfg: The base simulation configuration dictionary.
+        runs: The number of simulation runs to perform for each threshold.
+
+    Returns:
+        A tuple (thr_fine, final) where thr_fine is the maximal threshold found and final is the simulation result dictionary.
+    """
     thr = 0.70
     step = 0.002
     # upward sweep
@@ -43,15 +65,22 @@ def find_threshold(base_cfg, runs):
     thr_fine = thr
     while True:
         test = sim({**base_cfg, "filter_threshold": thr_fine + 0.002}, runs)
-        if test["status"] == "ok":
-            thr_fine += 0.0001
-            thr_fine = round(thr_fine, 4)
-        else:
+        if test["status"] != "ok":
             break
+        thr_fine += 0.0001
+        thr_fine = round(thr_fine, 4)
     final = sim({**base_cfg, "filter_threshold": thr_fine}, runs)
     return thr_fine, final
 
 def write_csv(rows, out):
+    """Writes a list of dictionaries to a CSV file with sorted fieldnames.
+
+    This function creates a CSV file at the specified path, writing all rows with headers inferred from the union of all keys.
+
+    Args:
+        rows: A list of dictionaries representing the rows to write.
+        out: The Path object specifying the output CSV file location.
+    """
     if not rows: return
     keys = sorted({k for r in rows for k in r})
     with out.open("w", newline="") as f:
@@ -61,6 +90,10 @@ def write_csv(rows, out):
             w.writerow(r)
 
 def main():
+    """Main entry point for the adaptive threshold sweep script.
+
+    This function parses command-line arguments, runs threshold sweeps for all parameter combinations, and writes the results to a CSV file.
+    """
     pa = argparse.ArgumentParser()
     pa.add_argument("--runs", type=int, default=50)
     pa.add_argument("--outfile", type=Path, default=Path("results/threshold_scan.csv"))
@@ -68,9 +101,7 @@ def main():
     args.outfile.parent.mkdir(exist_ok=True, parents=True)
     rows = []
     total = len(TOPO)*len(STRAT)*len(LKM)*len(ROUNDS)
-    i = 0
-    for t, s, L, R in itertools.product(TOPO, STRAT, LKM, ROUNDS):
-        i += 1
+    for i, (t, s, L, R) in enumerate(itertools.product(TOPO, STRAT, LKM, ROUNDS), start=1):
         base = {**BASE, "topology": t, "strategy": s, "link_length": float(L), "rounds": R}
         thr_max, res = find_threshold(base, args.runs)
         res.update(topology=t, strategy=s, link_length_km=L, rounds=R, thr_max=thr_max)

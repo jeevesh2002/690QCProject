@@ -8,7 +8,21 @@ from protocols.purification import get_scheme
 logger = logging.getLogger(__name__)
 
 def _purify_pair(env, qa, qb, qaux_a, qaux_b, purify_fn):
-    """Run one round of purification on (qa,qb) using (qaux_a,qaux_b)."""
+    """Attempts to purify a pair of quantum memories using auxiliary qubits and a purification function.
+
+    This function computes the average fidelity, applies the purification function, and updates the memories if successful.
+
+    Args:
+        env: The simulation environment.
+        qa: The first quantum memory to purify.
+        qb: The second quantum memory to purify.
+        qaux_a: Auxiliary quantum memory for the first node.
+        qaux_b: Auxiliary quantum memory for the second node.
+        purify_fn: The purification function to apply.
+
+    Returns:
+        A tuple (success, new_fidelity) where success is True if purification succeeded, and new_fidelity is the resulting fidelity or None if failed.
+    """
     F_in  = qa.fidelity()
     F_aux = qaux_a.fidelity()
     F_avg = (F_in + F_aux) / 2        # simplest symmetric choice
@@ -20,7 +34,19 @@ def _purify_pair(env, qa, qb, qaux_a, qaux_b, purify_fn):
     return True, F_new
 
 def _purify_link(env, link, rounds: int, purify_fn):
-    """Purify the *first* pair in link memories up to 'rounds'."""
+    """Purifies the first pair in link memories up to a specified number of rounds.
+
+    This function attempts to purify the first entangled pair in the link's memory for a given number of rounds using the provided purification function.
+
+    Args:
+        env: The simulation environment.
+        link: The link whose memories are to be purified.
+        rounds: The number of purification rounds to attempt.
+        purify_fn: The purification function to use.
+
+    Returns:
+        True if purification succeeds for all rounds, False otherwise.
+    """
     a, b = link.a, link.b
     for _ in range(rounds):
         if len(a.memory[b]) < 2 or len(b.memory[a]) < 2:
@@ -47,6 +73,26 @@ def generate_end_to_end(
     max_trials: int = 5000,
     echo_every: int = 100,
 ):
+    """Generates end-to-end entanglement over a chain of links with dynamic memories.
+
+    This function orchestrates entanglement generation, purification, swapping, and filtering across a chain of links, returning performance metrics upon success.
+
+    Args:
+        env: The simulation environment.
+        path_links: List of links forming the entanglement path.
+        rounds: Number of purification or swap rounds to perform.
+        filter_threshold: Minimum fidelity required to accept the final pair.
+        strategy: The entanglement strategy to use ('purify_then_swap' or 'swap_then_purify').
+        protocol: The purification protocol to use.
+        max_trials: Maximum number of entanglement generation trials.
+        echo_every: Frequency of logging progress.
+
+    Returns:
+        A tuple (latency, F_end, raw_pairs, rate_pair, rate_norm) with performance metrics.
+
+    Raises:
+        RuntimeError: If the maximum number of trials is exceeded.
+    """
     purify_fn = get_scheme(protocol)
     trials = 0
     raw_pairs = 0

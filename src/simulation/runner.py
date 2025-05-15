@@ -7,9 +7,34 @@ from simulation.repeater_chain import generate_end_to_end
 from network import topology
 
 def _call_build(env, params):
+    """Calls the topology build function with parameters extracted from a dictionary.
+
+    This function constructs the network topology using the provided simulation environment and parameters.
+
+    Args:
+        env: The simulation environment.
+        params: A dictionary containing topology, nodes, and link_length.
+
+    Returns:
+        The result of the topology.build function.
+    """
     return topology.build(env, params['topology'], params['nodes'], params['link_length'])
 
 def _get_path(links, topo):
+    """Determines the path of links to use based on the network topology.
+
+    This function selects the appropriate sequence of links for the given topology type.
+
+    Args:
+        links: The list of links in the network.
+        topo: The topology type ('linear', 'chain', 'ring', or 'star').
+
+    Returns:
+        A list of links representing the path for the topology.
+
+    Raises:
+        ValueError: If the topology type is not recognized.
+    """
     if topo in ('linear', 'chain'):
         return links
     if topo == 'ring':
@@ -19,6 +44,17 @@ def _get_path(links, topo):
     raise ValueError(topo)
 
 def run(params: Dict[str, Any], *, collect: bool = False):
+    """Runs Monte-Carlo simulations and summarizes the resulting statistics.
+
+    This function executes multiple simulation runs with the provided parameters, collects performance metrics, and either returns or prints a summary.
+
+    Args:
+        params: A dictionary of simulation parameters.
+        collect: If True, returns the summary dictionary instead of printing.
+
+    Returns:
+        The summary dictionary if collect is True; otherwise, prints the summary.
+    """
     # tune physics
     if 'coherence_time' in params:
         phys.physics.DEFAULT_COHERENCE_TIME_S = params['coherence_time']

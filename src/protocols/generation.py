@@ -6,15 +6,26 @@ from configs import physics
 logger = logging.getLogger(__name__)
 
 class Pair:
+    """Represents a generated entangled pair with a specified fidelity.
+
+    This class stores the fidelity value of an entangled pair created during the entanglement generation process.
+    """
     def __init__(self, fidelity: float):
         self.fidelity = fidelity
 
 def try_generate(env: simpy.Environment, link) -> Pair | None:
-    """Attempt one entanglement generation on *link*.
+    """Attempts to generate an entangled pair over a link and store it in memory.
 
-    On success, store each qubit in the respective node's memory list
-    and free the communication interface (implicit).
+    This function simulates heralded entanglement generation, marking communication qubits as busy, waiting for round-trip time, and storing the pair if successful.
+
+    Args:
+        env: The simulation environment.
+        link: The link over which to attempt entanglement generation.
+
+    Returns:
+        A Pair instance if generation succeeds, or None if it fails.
     """
+    
     # mark comm busy
     link.a.set_comm_busy(link.b, True)
     link.b.set_comm_busy(link.a, True)

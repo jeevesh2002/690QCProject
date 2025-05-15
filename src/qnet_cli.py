@@ -28,6 +28,13 @@ from simulation.runner import run
 
 # helpers
 def build_parser() -> argparse.ArgumentParser:
+    """Builds and returns the argument parser for the qnet_cli command-line interface.
+
+    This function defines all command-line arguments for configuring the quantum network Monte-Carlo simulation.
+
+    Returns:
+        An argparse.ArgumentParser instance configured with all CLI options.
+    """
     p = argparse.ArgumentParser(
         prog="qnet_cli.py",
         description="Run a quantum‑network Monte‑Carlo simulation."
@@ -73,6 +80,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 # main
 def main(argv: list[str] | None = None) -> None:
+    """Main entry point for the qnet_cli command-line interface.
+
+    This function parses command-line arguments, runs the simulation, and outputs the results to a file or stdout.
+    """
     args = build_parser().parse_args(argv)
     cfg: Dict[str, Any] = vars(args).copy()
 
