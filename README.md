@@ -129,3 +129,93 @@ We focus on **first‑generation quantum repeaters**, which support two‑way pu
 - **Visualization overload**  
   - _Risk:_ Too many plots impede clarity.  
   - _Mitigation:_ Use standard templates & automated plotting scripts.
+
+
+
+## Reproducing the Code & Figures
+
+Follow these four steps to rebuild every experiment and plot that appears in the paper.
+
+---
+
+### 1. Set-up (Python ≥ 3.10)
+
+```bash
+# Clone or unzip the project, then from the project root:
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+export PYTHONPATH=$PYTHONPATH:$(pwd)/src   # lets Python find `simulation/`
+````
+
+---
+
+### 2. Command-Line Interface
+
+`src/qnet_cli.py` is the main entry-point.  It accepts the flags below.
+
+| Short | Long option          | Type / unit |       Default      | Description                                   |
+| :---: | -------------------- | ----------- | :----------------: | --------------------------------------------- |
+|  `-t` | `--topology`         | str         |         — ‡        | Network shape: `chain`, `ring`, `star`.       |
+|  `-n` | `--nodes`            | int         |        **4**       | Total nodes in the graph.                     |
+|  `-L` | `--link-length`      | float (km)  |       **25**       | Fibre length per hop.                         |
+|  `-s` | `--strategy`         | str         | `purify_then_swap` | `purify_then_swap` or `swap_then_purify`.     |
+|  `-p` | `--protocol`         | str         |      `dejmps`      | Purification protocol (`dejmps`, `bbpssw`).   |
+|  `-r` | `--rounds`           | int         |        **2**       | DEJMPS/BBPSSW purification rounds.            |
+|  `-f` | `--filter-threshold` | float       |       **0.9**      | Post-selection cut-off; use `0.0` to disable. |
+|  `-c` | `--coherence-time`   | float (s)   |       **1.0**      | Memory coherence time $T_{\text{coh}}$.       |
+|  `-a` | `--att-len`          | float (km)  |       **22**       | Fibre attenuation length $L_{\text{att}}$.    |
+|   —   | `--runs`             | int         |       **100**      | Monte-Carlo repetitions.                      |
+|   —   | `--seed`             | int/None    |       `None`       | PRNG seed (deterministic if set).             |
+|  `-o` | `--output`           | path        |          —         | Save run summary as JSON (stdout if omitted). |
+
+‡ *Required flag*
+
+> **Note** Initial raw-pair fidelity $F_0$ is **not** CLI-configurable; edit
+> `configs/physics.py::PhysicsConfig.F0_LINK` if you need a different baseline.
+
+#### Example
+
+```bash
+# single 4-node chain, 25 km hops, 2 purification rounds
+python src/qnet_cli.py \
+    --topology chain \
+    --link-length 25 \
+    --strategy purify_then_swap \
+    --rounds 2 \
+    --runs 10 \
+    -o results/quick_chain.json
+
+cat results/quick_chain.json   # shows latency, fidelity, rates, etc.
+```
+
+---
+
+### 3. Parameter Sweeps
+
+The paper’s data is harvested via two drivers:
+
+| Script                | What it does                                                                                                                                  | Typical invocation                                          |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **`src/sweep.py`**    | Scans link-length × rounds × topology × strategy, adapting the filter threshold to the highest viable value for each setting; writes one CSV. | `python src/sweep.py --runs 50 --outfile results/sweep.csv` |
+| **`src/qnet_cli.py`** | Used inside shell loops when you want every trial’s raw JSON.                                                                                 | see example above   |
+
+Both expect to run from the **project root**, so `simulation/…` is on `PYTHONPATH`.
+
+---
+
+### 4. Plotting
+
+A notebook and a one-liner script reproduce all figures:
+
+```bash
+python plot_tradeoffs.py \
+       --csv results/sweep.csv \
+       --outdir figs/
+```
+
+The PDFs/PNGs will appear in `figs/`.
+
+---
+
+With **install → one-shot run → sweep → plot** complete, you should obtain identical latency, fidelity and rate numbers (and plots) to those in the report.
