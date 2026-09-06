@@ -4,4 +4,4 @@ pandas==2.2.3
 pillow==12.3.0
 Pygments==2.20.0
 simpy==4.1.1
-tornado==6.5.7
+tornado==6.5.8
